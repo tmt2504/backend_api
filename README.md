@@ -1,7 +1,7 @@
 # backend_api
 
 ### To install all libs:
-pip install -r requirements.txt
+pip install -r app/requirements.txt
 
 ### Get Containers
 curl --location 'http://127.0.0.1:8000/get_containers'
