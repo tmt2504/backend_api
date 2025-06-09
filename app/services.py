@@ -1,51 +1,10 @@
 import os
 import base64
 import cv2
-import utilities as u
-from ultralytics import YOLO
-import requests
 import numpy as np
-import json
 from datetime import datetime
-
-OUTPUT_DIR = "static/output"
-WEIGHTS_DIR = "weights"
-CONFIG_PATH = "model_config.json"
-MODEL_FILENAME = "best.pt"
-MODEL_PATH = os.path.join(WEIGHTS_DIR, MODEL_FILENAME)
-DEVICE = "mps"
-
-def load_config():
-    with open(CONFIG_PATH, "r") as f:
-        return json.load(f)
-
-config = load_config()
-MODEL_URL = config["model_url"]
-
-# Create folders if not exist
-for folder in [OUTPUT_DIR, WEIGHTS_DIR]:
-    os.makedirs(folder, exist_ok=True)
-
-def download_model(url, save_path):
-    if not os.path.exists(save_path):
-        try:
-            print(f"Downloading model from {url} ...")
-            r = requests.get(url)
-            r.raise_for_status()
-            with open(save_path, "wb") as f:
-                f.write(r.content)
-            print("Download completed.")
-        except Exception as e:
-            print(f"Failed to download model: {e}")
-            raise
-    else:
-        print("Model already exists.")
-
-# Download model
-download_model(MODEL_URL, MODEL_PATH)
-# Load model YOLO
-model = YOLO(MODEL_PATH)
-model.to(DEVICE)
+import utilities as u
+from config import OUTPUT_DIR, model
 
 def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     if image_base64.startswith("data:image"):
@@ -80,4 +39,3 @@ def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     cv2.imwrite(save_path, image)
 
     return container_id, f"/static/output/{filename}"
-
