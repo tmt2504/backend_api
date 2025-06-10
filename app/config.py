@@ -1,44 +1,84 @@
 import os
 import json
 import requests
+import re
 from ultralytics import YOLO
 
 CONFIG_PATH = "model_config.json"
+VERSION_FILE = "model.version"
+
+# Load config file
 def load_config():
     with open(CONFIG_PATH, "r") as f:
         return json.load(f)
 
-config = load_config()
-MODEL_URL = config["model_url"]
-DEVICE = config["device"]
-OUTPUT_DIR = config["output_dir"]
-WEIGHTS_DIR = config["weights_dir"]
-MODEL_FILENAME = config["model_filename"]
+# Get the latest version folder name from GitHub API
+def get_latest_version_from_github(api_url):
+    try:
+        r = requests.get(api_url)
+        r.raise_for_status()
+        items = r.json()
+        versions = [item['name'] for item in items if re.match(r'v\d+', item['name'])]
+        versions.sort(key=lambda x: int(x[1:]), reverse=True)
+        return versions[0] if versions else None
+    except Exception as e:
+        print(f"Failed to fetch latest version: {e}")
+        return None
 
-MODEL_PATH = os.path.join(WEIGHTS_DIR, MODEL_FILENAME)
+# Get local version
+def get_local_version():
+    if os.path.exists(VERSION_FILE):
+        with open(VERSION_FILE, "r") as f:
+            return f.read().strip()
+    return None
 
-# Create folders if not exist
-for folder in [OUTPUT_DIR, WEIGHTS_DIR]:
-    os.makedirs(folder, exist_ok=True)
+# Save version locally
+def save_local_version(version):
+    with open(VERSION_FILE, "w") as f:
+        f.write(version)
 
-def download_model(url, save_path):
-    if not os.path.exists(save_path):
+# Download if new version
+def download_model_if_new(url, save_path, new_version):
+    current_version = get_local_version()
+    if current_version != new_version:
         try:
             print(f"Downloading model from {url} ...")
             r = requests.get(url)
             r.raise_for_status()
             with open(save_path, "wb") as f:
                 f.write(r.content)
+            save_local_version(new_version)
             print("Download completed.")
         except Exception as e:
             print(f"Failed to download model: {e}")
             raise
     else:
-        print("Model already exists.")
+        print("Model is up to date.")
 
-# Download model
-download_model(MODEL_URL, MODEL_PATH)
+# === MAIN ===
+config = load_config()
+GITHUB_API_URL = config["github_api_url"]
+DEVICE = config["device"]
+OUTPUT_DIR = config["output_dir"]
+WEIGHTS_DIR = config["weights_dir"]
+MODEL_FILENAME = config["model_filename"]
+MODEL_PATH = os.path.join(WEIGHTS_DIR, MODEL_FILENAME)
 
-# Load model YOLO
+# Create output folders
+for folder in [OUTPUT_DIR, WEIGHTS_DIR]:
+    os.makedirs(folder, exist_ok=True)
+
+# Get latest version from GitHub API
+latest_version = get_latest_version_from_github(GITHUB_API_URL)
+if not latest_version:
+    raise RuntimeError("Could not determine latest model version.")
+
+# Build model raw URL from version
+RAW_MODEL_URL = f"{config['raw_base_url']}/{latest_version}/weights/{MODEL_FILENAME}"
+
+# Download model if needed
+download_model_if_new(RAW_MODEL_URL, MODEL_PATH, latest_version)
+
+# Load YOLO model
 model = YOLO(MODEL_PATH)
 model.to(DEVICE)

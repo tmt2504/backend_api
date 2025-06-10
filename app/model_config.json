@@ -1,5 +1,6 @@
 {
-  "model_url": "https://github.com/Tenaity/detect-container-infor/raw/main/yolo_runs/v3/weights/best.pt",
+  "github_api_url": "https://api.github.com/repos/Tenaity/detect-container-infor/contents/yolo_runs",
+  "raw_base_url": "https://github.com/Tenaity/detect-container-infor/raw/main/yolo_runs",
   "model_filename": "best.pt",
   "device": "mps",
   "output_dir": "static/output",
