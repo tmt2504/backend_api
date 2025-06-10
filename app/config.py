@@ -19,7 +19,8 @@ DEVICE = config["device"]
 OUTPUT_DIR = config["output_dir"]
 MODEL_FILENAME = config["model_filename"]
 
-WEIGHTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "weights"))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+WEIGHTS_DIR = os.path.join(BASE_DIR, config["weights_dir"])
 MODEL_PATH = os.path.join(WEIGHTS_DIR, MODEL_FILENAME)
 VERSION_FILE = os.path.join(WEIGHTS_DIR, "model.version")
 
