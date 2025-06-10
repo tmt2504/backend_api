@@ -2,7 +2,7 @@ fastapi
 uvicorn
 sqlalchemy
 pydantic
-opencv-python
+opencv-python-headless
 pytesseract
 requests
 ultralytics

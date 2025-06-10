@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app import crud
 from app.models import Base, Container
 from app.database import SessionLocal, engine
-from app import services as s
+import app.services as s
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
