@@ -3,19 +3,19 @@ import json
 import requests
 from ultralytics import YOLO
 
-OUTPUT_DIR = "static/output"
-WEIGHTS_DIR = "weights"
 CONFIG_PATH = "model_config.json"
-MODEL_FILENAME = "best.pt"
-MODEL_PATH = os.path.join(WEIGHTS_DIR, MODEL_FILENAME)
-DEVICE = "mps"
-
 def load_config():
     with open(CONFIG_PATH, "r") as f:
         return json.load(f)
 
 config = load_config()
 MODEL_URL = config["model_url"]
+DEVICE = config["device"]
+OUTPUT_DIR = config["output_dir"]
+WEIGHTS_DIR = config["weights_dir"]
+MODEL_FILENAME = config["model_filename"]
+
+MODEL_PATH = os.path.join(WEIGHTS_DIR, MODEL_FILENAME)
 
 # Create folders if not exist
 for folder in [OUTPUT_DIR, WEIGHTS_DIR]:
