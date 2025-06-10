@@ -7,10 +7,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app import crud
-from app.models import Base
+from app.models import Base, Container
 from app.database import SessionLocal, engine
-import services as s
-from app.models import Container
+from app import services as s
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()

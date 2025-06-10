@@ -3,8 +3,9 @@ import base64
 import cv2
 import numpy as np
 from datetime import datetime
-import utilities as u
-from config import OUTPUT_DIR, model
+
+from app import utilities as u
+from app.config import OUTPUT_DIR, model
 
 def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     if image_base64.startswith("data:image"):
