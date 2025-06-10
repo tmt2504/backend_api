@@ -13,7 +13,7 @@ from app import services as s
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="../static"), name="static")
 
 # Dependency
 def get_db():
