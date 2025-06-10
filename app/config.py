@@ -4,7 +4,7 @@ import requests
 import re
 from ultralytics import YOLO
 
-CONFIG_PATH = "model_config.json"
+CONFIG_PATH = "../config.json"
 VERSION_FILE = "model.version"
 
 # Load config file
