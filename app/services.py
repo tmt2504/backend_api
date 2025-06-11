@@ -7,6 +7,7 @@ from datetime import datetime
 from app import utilities as u
 from app.config import OUTPUT_DIR, model
 
+
 def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     if image_base64.startswith("data:image"):
         image_base64 = image_base64.split(",")[1]
@@ -16,12 +17,13 @@ def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     detections = model(image)[0]
-    container_id = ''
+
+    container_parts = {'owner': '', 'serial': '', 'dv': ''}
 
     for box in detections.boxes:
         cls = int(box.cls.item())
         label = model.names[cls]
-        if label not in ['owner', 'serial', 'dv']:
+        if label not in container_parts:
             continue
 
         xyxy = box.xyxy.cpu().numpy().astype(int)[0]
@@ -31,7 +33,9 @@ def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
         fields = u.extract_fields(text)
         u.draw_box_and_label(image, xyxy, label, fields)
 
-        container_id += text
+        container_parts[label] = text.strip()
+
+    container_id = container_parts['owner'] + container_parts['serial'] + container_parts['dv']
 
     # Save output image
     time_str = time_process.strftime("%Y%m%d%H%M%S")
