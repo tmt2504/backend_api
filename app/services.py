@@ -7,18 +7,28 @@ from datetime import datetime
 from app import utilities as u
 from app.config import OUTPUT_DIR, model
 
+container_parts = {'owner', 'serial', 'dv'}
 
 def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
+    # Remove prefix if present
     if image_base64.startswith("data:image"):
         image_base64 = image_base64.split(",")[1]
 
+    # Decode base64 image to OpenCV image
     image_data = base64.b64decode(image_base64)
     nparr = np.frombuffer(image_data, np.uint8)
-    image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    image_original = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    detections = model(image)[0]
+    # Run detection
+    detections = model(image_original)[0]
 
-    container_parts = {'owner': '', 'serial': '', 'dv': ''}
+    # Clone image for each OCR engine
+    image_tess = image_original.copy()
+    image_trocr = image_original.copy()
+
+    # OCR result containers
+    container_tess_parts = {'owner': '', 'serial': '', 'dv': ''}
+    container_trocr_parts = {'owner': '', 'serial': '', 'dv': ''}
 
     for box in detections.boxes:
         cls = int(box.cls.item())
@@ -27,20 +37,44 @@ def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
             continue
 
         xyxy = box.xyxy.cpu().numpy().astype(int)[0]
-        cropped = u.crop_image_with_box(image, xyxy)
+        cropped = u.crop_image_with_box(image_original, xyxy)
         cleaned = u.clean_ocr_image(cropped)
-        text = u.extract_text(cleaned)
-        fields = u.extract_fields(text)
-        u.draw_box_and_label(image, xyxy, label, fields)
 
-        container_parts[label] = text.strip()
+        # Tesseract OCR
+        tess = u.tesseract_ocr(cleaned)
+        fields_tess = u.extract_fields(tess)
+        u.draw_box_and_label(image_tess, xyxy, label, fields_tess)
+        container_tess_parts[label] = tess.strip()
 
-    container_id = container_parts['owner'] + container_parts['serial'] + container_parts['dv']
+        # TrOCR OCR
+        trocr = u.trocr_ocr(cleaned)
+        fields_trocr = u.extract_fields(trocr)
+        u.draw_box_and_label(image_trocr, xyxy, label, fields_trocr)
+        container_trocr_parts[label] = trocr.strip()
 
-    # Save output image
+    # Build container IDs
+    container_tess_id = container_tess_parts['owner'] + container_tess_parts['serial'] + container_tess_parts['dv']
+    container_trocr_id = container_trocr_parts['owner'] + container_trocr_parts['serial'] + container_trocr_parts['dv']
+
     time_str = time_process.strftime("%Y%m%d%H%M%S")
-    filename = f"{time_str}_{container_id}.jpg"
-    save_path = os.path.join(OUTPUT_DIR, filename)
-    cv2.imwrite(save_path, image)
 
-    return container_id, f"/static/output/{filename}"
+    # Save Tesseract image
+    filename_tess = f"{time_str}_{container_tess_id}_tess.jpg"
+    save_path_tess = os.path.join(OUTPUT_DIR, filename_tess)
+    cv2.imwrite(save_path_tess, image_tess)
+
+    # Save TrOCR image
+    filename_trocr = f"{time_str}_{container_trocr_id}_trocr.jpg"
+    save_path_trocr = os.path.join(OUTPUT_DIR, filename_trocr)
+    cv2.imwrite(save_path_trocr, image_trocr)
+
+    return {
+        "tesseract": {
+            "container_id": container_tess_id,
+            "image_url": f"/static/output/{filename_tess}"
+        },
+        "trocr": {
+            "container_id": container_trocr_id,
+            "image_url": f"/static/output/{filename_trocr}"
+        }
+    }

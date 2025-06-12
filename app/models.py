@@ -8,3 +8,4 @@ class Container(Base):
     container_id = Column(String, index=True)
     img_url = Column(String)
     time_process = Column(DateTime)
+    engine = Column(String)

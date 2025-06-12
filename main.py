@@ -35,13 +35,39 @@ def get_containers(db: Session = Depends(get_db)):
 def insert_container(req: ContainerRequest, db: Session = Depends(get_db)):
     try:
         time_process = datetime.utcnow()
-        container_id, img_url = s.process_img_and_save_to_disk(req.image_base64, time_process)
-        container = crud.insert_container(db, container_id, img_url, time_process)
+        results = s.process_img_and_save_to_disk(req.image_base64, time_process)
+
+        tess_result = results["tesseract"]
+        container_tess = crud.insert_container(
+            db,
+            tess_result["container_id"],
+            tess_result["image_url"],
+            time_process,
+            engine="tesseract"
+        )
+
+        trocr_result = results["trocr"]
+        container_trocr = crud.insert_container(
+            db,
+            trocr_result["container_id"],
+            trocr_result["image_url"],
+            time_process,
+            engine="trocr"
+        )
+
         return {
-            "container_id": container.container_id,
-            "image_url": container.img_url,
-            "time_process": container.time_process.isoformat()
+            "tesseract": {
+                "container_id": container_tess.container_id,
+                "image_url": container_tess.img_url,
+                "time_process": container_tess.time_process.isoformat()
+            },
+            "trocr": {
+                "container_id": container_trocr.container_id,
+                "image_url": container_trocr.img_url,
+                "time_process": container_trocr.time_process.isoformat()
+            }
         }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -1,6 +1,10 @@
 import cv2
 import pytesseract
+from PIL import Image
+import torch
+from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 
+# Common
 def crop_image_with_box(img, box, padding=5):
     x1, y1, x2, y2 = map(int, box)
     h, w = img.shape[:2]
@@ -29,11 +33,34 @@ def clean_ocr_image(img):
     _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return thresh
 
-# --- OCR LOGIC ---
-def extract_text(img):
-    config = r"--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    text = pytesseract.image_to_string(img, config=config).strip()
-    return text
-
 def extract_fields(text):
     return text if text else ""
+
+# TesseractOCR
+def tesseract_ocr(image):
+    config = r"--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return pytesseract.image_to_string(image, config=config).strip()
+
+# TrOCR
+processor = TrOCRProcessor.from_pretrained('microsoft/trocr-base-printed')
+trocr_model = VisionEncoderDecoderModel.from_pretrained('microsoft/trocr-base-printed')
+trocr_model.eval()
+
+def trocr_ocr(image):
+    # Convert to RGB PIL Image
+    if image.ndim == 2:  # grayscale
+        img_rgb = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    elif image.shape[2] == 1:
+        img_rgb = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    else:
+        img_rgb = image
+
+    pil_img = Image.fromarray(img_rgb)
+
+    # Preprocess
+    inputs = processor(images=pil_img, return_tensors="pt") # type: ignore
+    with torch.no_grad():
+        generated_ids = trocr_model.generate(**inputs) # type: ignore
+
+    generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0] # type: ignore
+    return generated_text.strip()
