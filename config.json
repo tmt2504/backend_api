@@ -3,6 +3,6 @@
   "raw_base_url": "https://github.com/Tenaity/detect-container-infor/raw/main/yolo_runs",
   "model_filename": "best.pt",
   "device": "mps",
-  "output_dir": "../static/output",
+  "output_dir": "static/output",
   "weights_dir": "weights"
 }

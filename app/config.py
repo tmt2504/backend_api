@@ -4,9 +4,10 @@ import requests
 import re
 from ultralytics import YOLO
 
-CONFIG_PATH = "../config.json"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # Load config file
+CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 def load_config():
     with open(CONFIG_PATH, "r") as f:
         return json.load(f)
@@ -16,10 +17,9 @@ config = load_config()
 # Corrected paths
 GITHUB_API_URL = config["github_api_url"]
 DEVICE = config["device"]
-OUTPUT_DIR = config["output_dir"]
+OUTPUT_DIR = os.path.join(BASE_DIR, config["output_dir"])
 MODEL_FILENAME = config["model_filename"]
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 WEIGHTS_DIR = os.path.join(BASE_DIR, config["weights_dir"])
 MODEL_PATH = os.path.join(WEIGHTS_DIR, MODEL_FILENAME)
 VERSION_FILE = os.path.join(WEIGHTS_DIR, "model.version")
