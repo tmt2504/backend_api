@@ -7,7 +7,7 @@ from datetime import datetime
 from app import utilities as u
 from app.config import OUTPUT_DIR, model
 
-container_parts = {'owner', 'serial', 'dv'}
+container_parts = {'owner', 'serial', 'dv', 'size'}
 
 def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     # Remove prefix if present
@@ -27,8 +27,8 @@ def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     image_trocr = image_original.copy()
 
     # OCR result containers
-    container_tess_parts = {'owner': '', 'serial': '', 'dv': ''}
-    container_trocr_parts = {'owner': '', 'serial': '', 'dv': ''}
+    container_tess_parts = {'owner': '', 'serial': '', 'dv': '','size': ''}
+    container_trocr_parts = {'owner': '', 'serial': '', 'dv': '', 'size':''}
 
     for box in detections.boxes:
         cls = int(box.cls.item())
@@ -59,12 +59,12 @@ def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     time_str = time_process.strftime("%Y%m%d%H%M%S")
 
     # Save Tesseract image
-    filename_tess = f"{time_str}_{container_tess_id}_tess.jpg"
+    filename_tess = f"{time_str}_{container_tess_id}_{container_tess_parts['size']}_tess.jpg"
     save_path_tess = os.path.join(OUTPUT_DIR, filename_tess)
     cv2.imwrite(save_path_tess, image_tess)
 
     # Save TrOCR image
-    filename_trocr = f"{time_str}_{container_trocr_id}_trocr.jpg"
+    filename_trocr = f"{time_str}_{container_trocr_id}_{container_tess_parts['size']}_trocr.jpg"
     save_path_trocr = os.path.join(OUTPUT_DIR, filename_trocr)
     cv2.imwrite(save_path_trocr, image_trocr)
 
