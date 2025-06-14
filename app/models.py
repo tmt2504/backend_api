@@ -7,5 +7,6 @@ class Container(Base):
     id = Column(Integer, primary_key=True, index=True)
     container_id = Column(String, index=True)
     img_url = Column(String)
+    iso_code = Column(String)
     time_process = Column(DateTime)
     engine = Column(String)

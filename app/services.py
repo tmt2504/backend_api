@@ -53,9 +53,10 @@ def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
         container_trocr_parts[label] = trocr.strip()
 
     # Build container IDs
-    container_tess_id = container_tess_parts['owner'] + container_tess_parts['serial'] + container_tess_parts['dv']
-    container_trocr_id = container_trocr_parts['owner'] + container_trocr_parts['serial'] + container_trocr_parts['dv']
+    container_tess_id = (container_tess_parts['owner'] + container_tess_parts['serial'] + container_tess_parts['dv']).replace(" ", "")
+    container_trocr_id = (container_trocr_parts['owner'] + container_trocr_parts['serial'] + container_trocr_parts['dv']).replace(" ", "")
 
+    
     time_str = time_process.strftime("%Y%m%d%H%M%S")
 
     # Save Tesseract image
@@ -71,10 +72,12 @@ def process_img_and_save_to_disk(image_base64: str, time_process: datetime):
     return {
         "tesseract": {
             "container_id": container_tess_id,
+            "iso_code":container_tess_parts['size'],
             "image_url": f"/static/output/{filename_tess}"
         },
         "trocr": {
             "container_id": container_trocr_id,
+            "iso_code":container_trocr_parts['size'],
             "image_url": f"/static/output/{filename_trocr}"
         }
     }

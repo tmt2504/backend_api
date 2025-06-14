@@ -45,6 +45,7 @@ def insert_container(req: ContainerRequest, db: Session = Depends(get_db)):
             db,
             tess_result["container_id"],
             tess_result["image_url"],
+            tess_result["iso_code"],
             time_process,
             engine="tesseract"
         )
@@ -54,6 +55,7 @@ def insert_container(req: ContainerRequest, db: Session = Depends(get_db)):
             db,
             trocr_result["container_id"],
             trocr_result["image_url"],
+            trocr_result["iso_code"],
             time_process,
             engine="trocr"
         )
@@ -62,11 +64,13 @@ def insert_container(req: ContainerRequest, db: Session = Depends(get_db)):
             "tesseract": {
                 "container_id": container_tess.container_id,
                 "image_url": container_tess.img_url,
+                "iso_code": container_tess.iso_code,
                 "time_process": container_tess.time_process.isoformat()
             },
             "trocr": {
                 "container_id": container_trocr.container_id,
                 "image_url": container_trocr.img_url,
+                "iso_code": container_trocr.iso_code,
                 "time_process": container_trocr.time_process.isoformat()
             }
         }

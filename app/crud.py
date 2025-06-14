@@ -5,11 +5,12 @@ from datetime import datetime
 def get_all_containers(db: Session):
     return db.query(Container).all()
 
-def insert_container(db: Session, container_id: str, img_url: str, time_process: datetime, engine: str):
+def insert_container(db: Session, container_id: str, img_url: str, iso_code: str, time_process: datetime, engine: str):
     container = Container(
         container_id=container_id,
         img_url=img_url,
         time_process=time_process,
+        iso_code=iso_code,
         engine=engine
     )
     db.add(container)
